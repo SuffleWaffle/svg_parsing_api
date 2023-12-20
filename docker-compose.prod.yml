@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  svg_parsing_service:
+    image: 064427434392.dkr.ecr.us-east-1.amazonaws.com/svg_parsing_service:latest
+    container_name: svg_parsing_service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ENVIRONMENT=PRODUCTION
+    env_file:
+      - .env
+      - src_env/prod/.env
+    ports:
+      - '${PROD_SYSTEM_APP_PORT}:${PROD_APP_PORT}/tcp'
+    expose:
+      - '${PROD_APP_PORT}/tcp'
+    command: gunicorn main:app --worker-tmp-dir /dev/shm -b ${PROD_APP_HOST}:${PROD_APP_PORT} -w ${PROD_APP_WORKERS} -t ${PROD_APP_TIMEOUT} --graceful-timeout ${PROD_APP_GRACEFUL_TIMEOUT} -k uvicorn.workers.UvicornWorker
